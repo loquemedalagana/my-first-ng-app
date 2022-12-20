@@ -36,12 +36,18 @@ jobs:
           npm ci
       - name: Build
         run: |
-          npm run build:prod
+          npm run build
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB_ACTION }}
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          release_name: ${{ steps.changelog.outputs.tag }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
 
       - name: Deploy
-        if: success()
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.TOKEN_GITHUB_ACTION }}
-          publish_dir: dist/my-first-ng-app
-          enable_jekyll: true
+        run: |
+          npm run deploy
